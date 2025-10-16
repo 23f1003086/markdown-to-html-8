@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-width: 800px;
+        }
+        #markdown-output {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            overflow: auto;
+        }
+        #loading {
+            display: none;
+            font-weight: bold;
+            color: #007BFF;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js/lib/highlight.js"></script>
+</head>
+<body>
+
+    <h1>Markdown to HTML Converter</h1>
+    <div id="loading">Processing...</div>
+    <div id="markdown-output"></div>
+
+    <h2>Upload Your Markdown File</h2>
+    <input type="file" id="file-input" accept=".md">
+    <button id="convert-button">Convert</button>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const loading = document.getElementById("loading");
+            const output = document.getElementById("markdown-output");
+            const fileInput = document.getElementById("file-input");
+            const convertButton = document.getElementById("convert-button");
+
+            // Function to fetch and process the markdown file
+            function loadMarkdownFile(filePath) {
+                loading.style.display = "block";
+                fetch(filePath)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.text();
+                    })
+                    .then(markdownText => {
+                        const html = marked.parse(markdownText);
+                        output.innerHTML = html;
+                        hljs.highlightAll();
+                    })
+                    .catch(error => {
+                        output.innerHTML = "Error loading file: " + error.message;
+                    })
+                    .finally(() => {
+                        loading.style.display = "none";
+                    });
+            }
+
+            // Load the default markdown file on page load
+            loadMarkdownFile('input.md');
+
+            // Handle file upload and conversion
+            convertButton.addEventListener("click", function() {
+                const file = fileInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const markdownText = event.target.result;
+                        const html = marked.parse(markdownText);
+                        output.innerHTML = html;
+                        hljs.highlightAll();
+                    };
+                    reader.onerror = function() {
+                        output.innerHTML = "Error reading file.";
+                    };
+                    reader.readAsText(file);
+                } else {
+                    output.innerHTML = "Please select a markdown file.";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
